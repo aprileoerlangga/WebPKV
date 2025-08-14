@@ -25,8 +25,6 @@ Route::prefix('admin')->group(function () {
         Route::post('logout', [AuthController::class, 'logout']);
         Route::get('me', [AuthController::class, 'me']);
 
-        
-
         // Dashboard
         Route::get('dashboard', [DashboardController::class, 'index']);
 
@@ -57,4 +55,9 @@ Route::prefix('admin')->group(function () {
             Route::get('export/card-return', [ReportController::class, 'exportCardReturn']);
         });
     });
+});
+
+// Add route for admin UI
+Route::get('/admin', function () {
+    return view('admin');
 });
