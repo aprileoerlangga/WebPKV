@@ -4,17 +4,14 @@ const app = {
     pages: {},
 
     async init() {
+        console.log('App initializing...');
         this.setupEventListeners();
         this.setDefaultDate();
 
-        // Check authentication
-        const isAuthenticated = await auth.checkAuth();
-        if (isAuthenticated) {
-            this.showMainApp();
-            this.navigateTo('dashboard');
-        } else {
-            this.showLogin();
-        }
+        // For demo purposes, skip authentication and go directly to main app
+        this.showMainApp();
+        await this.navigateTo('dashboard');
+        console.log('App initialized successfully');
     },
 
     setupEventListeners() {
@@ -64,14 +61,17 @@ const app = {
     showLogin() {
         document.getElementById('loginForm').classList.remove('hidden');
         document.getElementById('pageContent').classList.add('hidden');
-        document.querySelector('.lg\\:ml-64').classList.add('hidden');
-        document.getElementById('pageTitle').textContent = 'Login';
+        // Hide the sidebar and main layout when showing login
+        document.getElementById('sidebar').style.display = 'none';
+        document.querySelector('.lg\\:ml-64').style.marginLeft = '0';
     },
 
     showMainApp() {
         document.getElementById('loginForm').classList.add('hidden');
         document.getElementById('pageContent').classList.remove('hidden');
-        document.querySelector('.lg\\:ml-64').classList.remove('hidden');
+        // Show the sidebar and restore layout
+        document.getElementById('sidebar').style.display = 'block';
+        document.querySelector('.lg\\:ml-64').style.marginLeft = '';
 
         if (auth.currentUser) {
             document.getElementById('adminName').textContent = auth.currentUser.name;
@@ -122,6 +122,7 @@ const app = {
 
     async loadPage(page) {
         const pageContent = document.getElementById('pageContent');
+        console.log(`Loading page: ${page}`);
 
         try {
             utils.showLoading(true);
@@ -132,12 +133,18 @@ const app = {
                 throw new Error(`Page module for '${page}' not found`);
             }
 
+            console.log(`Page module found for: ${page}`);
+
             // Render page
-            pageContent.innerHTML = pageModule.render();
+            const pageHtml = pageModule.render();
+            console.log(`Page HTML rendered for: ${page}`);
+            pageContent.innerHTML = pageHtml;
 
             // Initialize page
             if (pageModule.init) {
+                console.log(`Initializing page: ${page}`);
                 await pageModule.init();
+                console.log(`Page initialized: ${page}`);
             }
 
         } catch (error) {
@@ -158,18 +165,26 @@ const app = {
     },
 
     getPageModule(page) {
+        console.log(`Getting page module for: ${page}`);
+        
         switch (page) {
             case 'dashboard':
-                return dashboard;
+                console.log('Dashboard module:', typeof dashboard);
+                return window.dashboard || dashboard;
             case 'applications':
-                return applications;
+                console.log('Applications module:', typeof applications);
+                return window.applications || applications;
             case 'cards':
-                return cards;
+                console.log('Cards module:', typeof cards);
+                return window.cards || cards;
             case 'history':
-                return history;
+                console.log('History module:', typeof history);
+                return window.history || history;
             case 'reports':
-                return reports;
+                console.log('Reports module:', typeof reports);
+                return window.reports || reports;
             default:
+                console.log(`No module found for page: ${page}`);
                 return null;
         }
     },

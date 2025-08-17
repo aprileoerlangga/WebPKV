@@ -1,7 +1,7 @@
 // Authentication Module
 const auth = {
     token: localStorage.getItem('admin_token'),
-    currentUser: null,
+    currentUser: JSON.parse(localStorage.getItem('admin_user') || 'null'),
 
     async login(event) {
         event.preventDefault();
@@ -11,17 +11,28 @@ const auth = {
         const password = document.getElementById('loginPassword').value;
 
         try {
-            const response = await api.post('/admin/login', { email, password });
+            // Mock authentication for development
+            if (email === 'superadmin@stasiun.com' && password === 'password123') {
+                // Mock successful response
+                const mockToken = 'mock_admin_token_' + Date.now();
+                const mockUser = {
+                    id: 1,
+                    name: 'Super Admin',
+                    email: 'superadmin@stasiun.com',
+                    role: 'superadmin'
+                };
 
-            if (response.success) {
-                this.token = response.data.token;
-                this.currentUser = response.data.user;
+                this.token = mockToken;
+                this.currentUser = mockUser;
                 localStorage.setItem('admin_token', this.token);
+                localStorage.setItem('admin_user', JSON.stringify(this.currentUser));
                 api.setAuthToken(this.token);
+                
+                utils.showAlert('Login berhasil!', 'success');
                 app.showMainApp();
                 app.navigateTo('dashboard');
             } else {
-                utils.showAlert('Login gagal: ' + response.message, 'error');
+                utils.showAlert('Email atau password salah!', 'error');
             }
         } catch (error) {
             utils.showAlert('Error: ' + error.message, 'error');
@@ -31,42 +42,23 @@ const auth = {
     },
 
     async logout() {
-        try {
-            if (this.token) {
-                await api.post('/admin/logout');
-            }
-        } catch (error) {
-            console.error('Logout error:', error);
-        }
-
         localStorage.removeItem('admin_token');
+        localStorage.removeItem('admin_user');
         this.token = null;
         this.currentUser = null;
         api.setAuthToken(null);
         app.showLogin();
+        utils.showAlert('Logout berhasil!', 'info');
     },
 
     async checkAuth() {
-        if (!this.token) {
+        if (!this.token || !this.currentUser) {
             return false;
         }
 
-        try {
-            api.setAuthToken(this.token);
-            const response = await api.get('/admin/me');
-
-            if (response.success) {
-                this.currentUser = response.data.user;
-                return true;
-            } else {
-                throw new Error('Authentication failed');
-            }
-        } catch (error) {
-            localStorage.removeItem('admin_token');
-            this.token = null;
-            api.setAuthToken(null);
-            return false;
-        }
+        // For mock auth, just check if token and user exist
+        api.setAuthToken(this.token);
+        return true;
     },
 
     isAuthenticated() {

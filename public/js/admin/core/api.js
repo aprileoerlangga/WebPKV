@@ -2,6 +2,7 @@
 const api = {
     baseURL: '/api',
     authToken: null,
+    useMockData: true, // Enable mock data for development
 
     setAuthToken(token) {
         this.authToken = token;
@@ -21,6 +22,11 @@ const api = {
     },
 
     async request(method, endpoint, data = null) {
+        // If mock data is enabled, return mock responses
+        if (this.useMockData) {
+            return this.getMockResponse(method, endpoint, data);
+        }
+
         const url = `${this.baseURL}${endpoint}`;
         const options = {
             method: method.toUpperCase(),
@@ -47,6 +53,20 @@ const api = {
             console.error('API request failed:', error);
             throw error;
         }
+    },
+
+    getMockResponse(method, endpoint, data) {
+        // Simulate network delay
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                // Return mock success responses
+                resolve({
+                    success: true,
+                    data: {},
+                    message: 'Mock response'
+                });
+            }, 500);
+        });
     },
 
     async get(endpoint) {
